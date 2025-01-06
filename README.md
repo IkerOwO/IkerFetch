@@ -1,9 +1,9 @@
 # IkerFetch
 
 # Installation
-
+```
 wget -qO - https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/makeinstall | sh
-
+```
 # Execute
 
 ./ikerfetch
