@@ -2,7 +2,9 @@
 
 #Installation
 
-wget -qO - https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/makeinstall| sh
+wget -qO - https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/makeinstall | sh
+
+
 
 A Neofetch Type script, Made by Myself
 
