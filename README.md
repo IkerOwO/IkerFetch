@@ -5,9 +5,9 @@
 wget -qO - https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/makeinstall | sh
 ```
 # Execute
-
+```
 ./ikerfetch
-
+```
 A Neofetch Type script, Made by Myself
 
 It can tell you:
