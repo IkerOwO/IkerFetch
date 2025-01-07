@@ -4,6 +4,8 @@
 ```
 wget -qO - https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/makeinstall | sh
 ```
+# ¡Please make sure to install figlet, or else it wont work!
+
 # Execute
 ```
 ./ikerfetch
