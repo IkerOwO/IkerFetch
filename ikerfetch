@@ -116,15 +116,6 @@ ikerfetch() {
   kernel=$(uname -r)
   uptime=$(uptime | sed -E 's/^[^,]*up *//; s/, *[[:digit:]]* users.*//; s/min/minutes/; s/([[:digit:]]+):0?([[:digit:]]+)/\1 hours, \2 minutes/')
 
-  # Get package count
-  builtinPackages=$(return_package_manager_command)
-
-  if [[ $builtinPackages == "Unsupported distribution" ]]; then
-    print_left_aligned "$HRED ERROR: $RESTORE" "Distribution package manager not found!"
-  else
-    package_count=$(eval $builtinPackages)
-  fi
-
   # Print system information
   print_left_aligned "$LRED OS: $RESTORE" "$os"
   print_left_aligned "$LCYAN HOST: $RESTORE" "$device"
