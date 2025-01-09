@@ -30,19 +30,8 @@ user=$(whoami)
 hostname=$(hostnamectl --static)
 hostnameuser="$user@$hostname"
 
-# Function to return package manager command
-return_package_manager_command() {
-  name=$(awk -F= '/^PRETTY_NAME/ { gsub(/"/, "", $2); print $2 }' /etc/os-release | tr '[:upper:]' '[:lower:]')
-
-  if [[ $name == *"ubuntu"* || $name == *"pop"* || $name == *"tails"* || $name == *"zorin"* || $name == *"debian"* || $name == *"mint"* || $name == *"deepin"* || $name == *"kali"* ]]; then
-    echo "apt list --installed | wc --lines"
-  elif [[ $name == *"fedora"* || $name == *"red hat"* || $name == *"oracle"* || $name == *"rocky"* ]]; then
-    echo "dnf list installed | wc --lines"
-  elif [[ $name == *"artix"* || $name == *"endeavour"* || $name == *"steam"* || $name == *"arch"* || $name == *"manjaro"* ]]; then
-    echo "pacman -Q | wc --lines"
-  else
-    echo "Unsupported distribution" 
-  fi
+print_ascii_art() {
+    printf "\n${BLUE}$(figlet -f slant Ikerfetch)${NC}\n"
 }
 
 # Function to print left aligned
@@ -106,8 +95,7 @@ ram_output() {
 # Main function
 ikerfetch() {
   # Print decoration
-  echo -e "$HRED"
-  echo -e "$RESTORE"
+  print_ascii_art
 
   # Print hostname and user
   tput bold
