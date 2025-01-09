@@ -15,7 +15,7 @@ or
 ikerfetch
 ```
 
-#Update
+# Update
 ```
 ikerfetch update
 ```
