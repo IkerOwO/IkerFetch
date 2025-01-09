@@ -34,6 +34,11 @@ print_ascii_art() {
     printf "\n${BLUE}$(figlet -f slant Ikerfetch)${NC}\n"
 }
 
+#CPU Info
+get_cpu_info() {
+    echo -e "${BLUE}🔲CPU:${NC} $(grep 'model name' /proc/cpuinfo | head -n 1 | awk -F': ' '{print $2}')"
+}
+
 # Function to print left aligned
 print_left_aligned() {
   local left_part="$1"  # This is in color
@@ -116,12 +121,15 @@ ikerfetch() {
   kernel=$(uname -r)
   uptime=$(uptime | sed -E 's/^[^,]*up *//; s/, *[[:digit:]]* users.*//; s/min/minutes/; s/([[:digit:]]+):0?([[:digit:]]+)/\1 hours, \2 minutes/')
 
+
   # Print system information
   print_left_aligned "$LRED OS: $RESTORE" "$os"
   print_left_aligned "$LCYAN HOST: $RESTORE" "$device"
   print_left_aligned "$LYELLOW KERNEL: $RESTORE" "$kernel"
   print_left_aligned "$HYELLOW UPTIME: $RESTORE" "$uptime"
-  print_left_aligned "$HRED CPU: $RESTORE" "$(lscpu | grep 'Model name' | awk -F': ' '{print $2}')"
+   # Get CPU info and print it
+    cpu_info=$(get_cpu_info)
+   print_left_aligned "$cpu_info"
   print_left_aligned "$HRED GPU: $RESTORE" "$(lspci | grep -E 'VGA|3D' | awk -F'[][]' '{print $2}')"
 
   # Call RAM and Disk output functions
