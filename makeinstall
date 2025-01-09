@@ -4,15 +4,9 @@ BLUE='\033[0;34m'
 RESTORE='\033[0m'
 
 echo -e "$BLUE>>$RESTORE Entering /usr/local/bin"
-current_dir=$(pwd)  # Store the current directory
-cd /usr/local/bin || { echo "Failed to change directory"; exit 1; }
-
+pushd /usr/local/bin
 echo -e "$BLUE>>$RESTORE Downloading IkerFetch..."
 sudo curl -s https://raw.githubusercontent.com/IkerOwO/IkerFetch/main/ikerfetch -o ikerfetch
-
 echo -e "$BLUE>>$RESTORE Giving exec rights to ikerfetch..."
 sudo chmod +x ikerfetch
-
 echo -e "$BLUE>>$RESTORE Ikerfetch is installed!"
-
-cd "$current_dir"  # Return to the original directory

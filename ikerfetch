@@ -1,67 +1,233 @@
 #!/bin/bash
 
-# ANSI color codes
-BLUE='\033[0;34m'
-TURQUOISE='\033[38;5;38m'
-GREEN='\033[0;32m' 
-NC='\033[0m'       # No color (reset)
+CHAR='●'
+RESTORE='\033[0m'
+RED='\033[00;31m'
+GREEN='\033[00;32m'
+BLUE='\033[00;34m'
+CYAN='\033[00;36m'
+PURPLE='\033[00;35m'
+YELLOW='\033[00;33m'
+LIGHTGRAY='\033[00;37m'
+LRED='\033[01;31m'
+LGREEN='\033[01;32m'
+LYELLOW='\033[01;33m'
+LBLUE='\033[01;34m'
+LPURPLE='\033[01;35m'
+LCYAN='\033[01;36m'
+WHITE='\033[01;37m'
+HBLACK='\e[1;90m'
+HRED='\e[1;91m'
+HGREEN='\e[1;92m'
+HYELLOW='\e[1;93m'
+HBLUE='\e[1;94m'
+HPURPLE='\e[1;95m'
+HCYAN='\e[1;96m'
+HWHITE='\e[1;97m'
 
-# Function to print ASCII art
-print_ascii_art() {
-    printf "\n${BLUE}$(figlet -f slant Ikerfetch)${NC}\n"
+# Get username
+user=$(whoami)
+hostname=$(hostnamectl --static)
+hostnameuser="$user@$hostname"
+
+# Function to return package manager command
+return_package_manager_command() {
+  name=$(awk -F= '/^PRETTY_NAME/ { gsub(/"/, "", $2); print $2 }' /etc/os-release | tr '[:upper:]' '[:lower:]')
+
+  if [[ $name == *"ubuntu"* || $name == *"pop"* || $name == *"tails"* || $name == *"zorin"* || $name == *"debian"* || $name == *"mint"* || $name == *"deepin"* || $name == *"kali"* ]]; then
+    echo "apt list --installed | wc --lines"
+  elif [[ $name == *"fedora"* || $name == *"red hat"* || $name == *"oracle"* || $name == *"rocky"* ]]; then
+    echo "dnf list installed | wc --lines"
+  elif [[ $name == *"artix"* || $name == *"endeavour"* || $name == *"steam"* || $name == *"arch"* || $name == *"manjaro"* ]]; then
+    echo "pacman -Q | wc --lines"
+  else
+    echo "Unsupported distribution" 
+  fi
 }
 
-# Function to get OS name
-get_os_name() {
-    echo "$(uname -s) $(uname -r)"
+# Function to print left aligned
+print_left_aligned() {
+  local left_part="$1"  # This is in color
+  local right_part="$2" # This is not in color
+
+  # Print the left part followed by the right part
+  echo -e "$left_part$right_part"
 }
 
-# Function to get CPU info
-get_cpu_info() {
-    echo -e "${BLUE}🔲CPU:${NC} $(grep 'model name' /proc/cpuinfo | head -n 1 | awk -F': ' '{print $2}')"
+# Disk space output
+disk_output() {
+    local total=$(df / | awk 'NR==2 {print $2}')
+    local used=$(df / | awk 'NR==2 {print $3}')
+    local free=$(df / | awk 'NR==2 {print $4}')
+    
+    if [[ -z "$total" || -z "$free" ]]; then
+        print_left_aligned "$HRED ERROR: $RESTORE" "Unable to fetch disk info!"
+        return
+    fi
+    
+    local freediskpercantage=$(awk -v total="$total" -v used="$used" 'BEGIN {print (100/total * used)}')
+    local percentage=$(echo $freediskpercantage | awk '{print int($1 + 0.5)}')
+
+    local bar_length=40
+    local filled_length=$((percentage * bar_length / 100))
+    local empty_length=$((bar_length - filled_length))
+
+    local filled_bar=$(printf "%${filled_length}s" | tr ' ' '#')
+    local empty_bar=$(printf "%${empty_length}s" | tr ' ' '-')
+
+    print_left_aligned "$LPURPLE DISK: $RESTORE" "$used / $total [$filled_bar$empty_bar] ${percentage}%"
 }
 
+# Output RAM
+ram_output() {
+    local totalRAM=$(grep -E 'MemTotal' /proc/meminfo | awk '{print $2}')
+    local freeRAM=$(grep -E 'MemAvailable' /proc/meminfo | awk '{print $2}')
 
-# Function to get current shell
-get_current_shell() {
-    echo "$(basename $SHELL)"
+    if [[ -z "$totalRAM" || -z "$freeRAM" ]]; then
+        print_left_aligned "$HRED ERROR: $RESTORE" "Unable to fetch RAM info!"
+        return
+    fi
+    
+    local usedRAM=$ ```bash
+((totalRAM - freeRAM))
+    local RAMPercantage=$(awk -v total="$totalRAM" -v used="$usedRAM" 'BEGIN {print (100/total * used)}')
+    local percentage=$(echo $RAMPercantage | awk '{print int($1 + 0.5)}')
+
+    local bar_length=40
+    local filled_length=$((percentage * bar_length / 100))
+    local empty_length=$((bar_length - filled_length))
+
+    local filled_bar=$(printf "%${filled_length}s" | tr ' ' '#')
+    local empty_bar=$(printf "%${empty_length}s" | tr ' ' '-')
+
+    print_left_aligned "$LCYAN RAM: $RESTORE" "$usedRAM / $totalRAM [$filled_bar$empty_bar] ${percentage}%"
 }
 
-# Function to get memory info
-get_memory_info() {
-    free -h | awk 'NR==2{printf "🎞️ Memory:%s/%s (%.2f%%)\n", $3,$2,$3*100/$2 }'
+# Main function
+ikerfetch() {
+  # Print decoration
+  echo -e "$HRED"
+  echo -e "$RESTORE"
+
+  # Print hostname and user
+  tput bold
+  print_left_aligned "" "$hostnameuser"
+  tput sgr0
+
+  # Another decoration
+  echo -e "$HRED"
+  echo -e "$RESTORE"
+
+  # Get architecture and OS name
+  arch=$(uname -m)
+  name=$(awk -F= '/^PRETTY_NAME/ { gsub(/"/, "", $2); print $2 }' /etc/os-release)
+  os="$name $arch"
+
+  # Get device name, kernel version, and uptime
+  device=$(cat /sys/devices/virtual/dmi/id/product_family)
+  kernel=$(uname -r)
+  uptime=$(uptime | sed -E 's/^[^,]*up *//; s/, *[[:digit:]]* users.*//; s/min/minutes/; s/([[:digit:]]+):0?([[:digit:]]+)/\1 hours, \2 minutes/')
+
+  # Get package count
+  builtinPackages=$(return_package_manager_command)
+
+  if [[ $builtinPackages == "Unsupported distribution" ]]; then
+    print_left_aligned "$HRED ERROR: $RESTORE" "Distribution package manager not found!"
+  else
+    package_count=$(eval $builtinPackages)
+  fi
+
+  # Print system information
+  print_left_aligned "$LRED OS: $RESTORE" "$os"
+  print_left_aligned "$LCYAN HOST: $RESTORE" "$device"
+  print_left_aligned "$LYELLOW KERNEL: $RESTORE" "$kernel"
+  print_left_aligned "$HYELLOW UPTIME: $RESTORE" "$uptime"
+  print_left_aligned "$HRED CPU: $RESTORE" "$(lscpu | grep 'Model name' | awk -F': ' '{print $2}')"
+  print_left_aligned "$HRED GPU: $RESTORE" "$(lspci | grep -E 'VGA|3D' | awk -F'[][]' '{print $2}')"
+
+  # Call RAM and Disk output functions
+  ram_output
+  disk_output
+
+  # Print colors
+  print_left_aligned "$RED$CHAR$GREEN$CHAR$BLUE$CHAR$CYAN$CHAR$PURPLE$CHAR$YELLOW$CHAR$HBLACK$CHAR$HRED$CHAR$HGREEN$CHAR$HYELLOW$CHAR$HBLUE$CHAR$HPURPLE$CHAR$HCYAN$CHAR$HWHITE$CHAR$RESTORE"
+
+  echo # New line
 }
 
-code() {
-    printf "${BLUE}{} Code: ${NC}Shell ${TURQUOISE}(100)${NC}\n"
-}
-# Function to display colors used
-display_colors() {
-    echo -e "${BLUE}🎨Colors Used:${NC} ${BLUE}●${NC}  ${TURQUOISE}●${NC}  ${GREEN}●${NC}"
+# Help function
+help() {
+  printf "\n${HCYAN}nitrofetch${RESTORE}: Ikerfetch [] [help...]\n    A fetch command humanity deserves.\n\n    ${LCYAN}DEFAULT:${RESTORE}\n      Display the default Ikerfetch command.\n\n    ${LCYAN}Options:${RESTORE}\n      --char <char>                Replace the default color char (●)\n      --no-colors                  Do not use any colors. \n      --use-one-color <color>      Display nitrofetch using only one color\n      --version                    Display a more basic version command.\n\n    ${LCYAN}Commands:${RESTORE}\n      HELP      Display this command.\n      VERSION   Display information about nitrofetch.\n      UPDATE    Update nitrofetch to the latest version.\n      GET-RAM   A fancy command to display RAM usage.\n      GET-DISK  A fancy command to display disk space usage.\n\n    ${LCYAN}Exit Status:${RESTORE}\n      Returns success unless a command does not exist.\n\n"
 }
 
-
-# Main function to display all information
-display_info() {
-    print_ascii_art
-    # Get OS name and print it in blue
-    echo -e "🐧${BLUE}Kernel:${NC} $(get_os_name)"
-    # Get CPU info and print it
-    cpu_info=$(get_cpu_info)
-    echo "$cpu_info"
-    GPUType=$(lspci | grep -E 'VGA|3D' | awk -F'[][]' '{print $2}')
-    echo -e "${BLUE} GPU: ${NC} $GPUType"
-    # Get current shell and print it
-    echo -e "${BLUE}🔧 Shell:${NC} $(get_current_shell)"
-    # Get memory info and format it
-    memory_info=$(get_memory_info)
-    memory_title=$(echo "$memory_info" | cut -d':' -f1)
-    memory_details=$(echo "$memory_info" | cut -d':' -f2-)
-    # Print memory title in blue and details in default color
-    echo -e "${BLUE}${memory_title}:${NC} ${memory_details}"
-    code
-    # Display colors used
-    display_colors
+# Update function
+update() {
+  update=$(curl -s "https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/ikerfetch" || die "Connection error")
+  update="$(printf '%s\n' "$update" | diff -u "$(which ikerfetch)" -)"
+  if [ -z "$update" ]; then 
+    echo -e "$LGREEN>>$RESTORE IkerFetch is up to date!"
+  else
+    if printf '%s\n' "$update" | sudo patch "$(which ikerfetch)" -; then
+      echo -e "$LGREEN>>$RESTORE IkerFetch has been updated!\n"
+    else
+      print_left_aligned "${HRED}An error occurred.${RESTORE}" "\n"
+    fi
+  fi
+  exit 0
 }
-# Call the main function
-display_info
+
+# Execute the main function or handle commands
+if [ $# -eq 0 ]; then
+  ikerfetch 
+elif [ "$1" = "help" ]; then
+  help
+elif [ "$1" = "version" ]; then
+  echo -e "$LGREEN Ikerfetch version 1.0$RESTORE" # Example version output
+elif [ "$1" = "update" ]; then
+  update 
+elif [ "$1" = "get-disk" ]; then
+  disk_output 
+elif [ "$1" = "get-ram" ]; then
+  ram_output 
+elif [[ "$*" == *"--no-colors"* ]]; then
+  for currentvar in CHAR RESTORE RED GREEN BLUE CYAN PURPLE YELLOW LIGHTGRAY LRED LGREEN LYELLOW LBLUE LPURPLE LCYAN WHITE HBLACK HRED HGREEN HYELLOW HBLUE HPURPLE HCYAN HWHITE; do
+    eval "$currentvar=" 
+  done
+  ikerfetch
+elif [[ "$*" == *"--char"* ]]; then
+  for ((i=1; i<=$#; i++)); do
+    if [ "${!i}" = "--char" ]; then
+      next_arg_index=$((i+1))
+      next_arg=${!next_arg_index}
+      if [ -n "$next_arg" ]; then
+          eval "CHAR='$next_arg'"
+      fi 
+      break
+    fi
+  done
+  ikerfetch
+elif [[ "$*" == *"--use-one-color"* ]]; then
+  for ((i=1; i<=$#; i++)); do
+    if [ "${!i}" = "--use-one-color" ]; then
+      next_arg_index=$((i+1))
+      next_arg=${!next_arg_index}
+      if [ -n "$next_arg" ]; then
+          color=${next_arg^^}
+          if [[ ! -v $color ]]; then
+              print_left_aligned "$HRED ERROR: $RESTORE" "Invalid color specified: $next_arg"
+              exit 1
+          fi
+          for currentvar in CHAR RESTORE RED GREEN BLUE CYAN PURPLE YELLOW LIGHTGRAY LRED LGREEN LYELLOW LBLUE LPURPLE LCYAN WHITE HBLACK HRED HGREEN HYELLOW HBLUE HPURPLE HCYAN HWHITE; do
+            eval "$currentvar=\"\${$color}\"" 
+          done
+      else
+          print_left_aligned "$HRED ERROR: $RESTORE" "No color specified for --use-one-color!"
+          exit 1
+      fi
+      break
+    fi
+  done
+  ikerfetch
+else
+  print_left_aligned "$HRED ERROR: $RESTORE" "unknown command!"
+fi
