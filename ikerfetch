@@ -21,6 +21,7 @@ get_cpu_info() {
     echo -e "${BLUE}🔲CPU:${NC} $(grep 'model name' /proc/cpuinfo | head -n 1 | awk -F': ' '{print $2}')"
 }
 
+
 # Function to get current shell
 get_current_shell() {
     echo "$(basename $SHELL)"
@@ -48,6 +49,8 @@ display_info() {
     # Get CPU info and print it
     cpu_info=$(get_cpu_info)
     echo "$cpu_info"
+    GPUType=$(lspci | grep -E 'VGA|3D' | awk -F'[][]' '{print $2}')
+    echo -e "${BLUE} GPU: ${NC} $GPUType"
     # Get current shell and print it
     echo -e "${BLUE}🔧 Shell:${NC} $(get_current_shell)"
     # Get memory info and format it
