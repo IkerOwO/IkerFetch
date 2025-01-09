@@ -36,7 +36,7 @@ print_ascii_art() {
 
 #CPU Info
 get_cpu_info() {
-    echo -e "${BLUE}🔲CPU:${RESTORE} $(grep 'model name' /proc/cpuinfo | head -n 1 | awk -F': ' '{print $2}')"
+    echo -e "${BLUE}CPU:${RESTORE} $(grep 'model name' /proc/cpuinfo | head -n 1 | awk -F': ' '{print $2}')"
 }
 
 # Function to print left aligned
