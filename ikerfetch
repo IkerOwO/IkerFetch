@@ -62,20 +62,6 @@ display_info() {
     code
     # Display colors used
     display_colors
-    
-    update() {
-    update=$(curl -s "https://raw.githubusercontent.com/IkerOwO/IkerFetch/refs/heads/main/ikerfetch" || die "Connection error")
-	update="$(printf '%s\n' "$update" | diff -u "$(which ikerfetch)" -)"
-	if [ -z "$update" ]; then echo -e "$LGREEN>>$RESTORE IkerFetch is up to date!"
-	else
-		if printf '%s\n' "$update" | sudo patch "$(which ikerfetch)" -; then
-      echo -e "$LGREEN>>$RESTORE Ikerfetch has been updated!\n"
-    
-		else
-			print_centered "An error occured." "\n"
-		fi
-	fi
-	exit 0
 }
 # Call the main function
 display_info
