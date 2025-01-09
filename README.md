@@ -14,6 +14,11 @@ or
 ```
 ikerfetch
 ```
+
+#Update
+```
+ikerfetch update
+```
 # Description
 A Neofetch Type script, Made by Myself
 
