@@ -88,7 +88,7 @@ ram_output() {
         return
     fi
     
-    local usedRAM=$ ```bash
+    local usedRAM=$ ``bash
 ((totalRAM - freeRAM))
     local RAMPercantage=$(awk -v total="$totalRAM" -v used="$usedRAM" 'BEGIN {print (100/total * used)}')
     local percentage=$(echo $RAMPercantage | awk '{print int($1 + 0.5)}')
