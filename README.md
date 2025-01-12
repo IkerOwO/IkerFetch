@@ -24,7 +24,9 @@ A Neofetch Type script, Made by Myself
 
 It can tell you:
 
-The CPU that you have
+The CPU and the GPU that you have
+
+How much space you have left
 
 The memory that you are using and how much it is left
 
